@@ -66,7 +66,7 @@ func (em *EosMonitor) Gather(acc telegraf.Accumulator) error {
 	//fields["head_block_producer"] = headBlockProducer
 	fields["now"] = time.Now().Unix()
 
-	fmt.Printf("eosmonitor, fields: %+v\n", fields)
+	//fmt.Printf("eosmonitor, fields: %+v\n", fields)
 
 	tags := make(map[string]string)
 
