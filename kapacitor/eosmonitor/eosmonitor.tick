@@ -1,0 +1,89 @@
+// eosmonitor
+
+// measurement: eosmonitor
+// tags: host
+// fields: head_block_num, head_block_time, last_irreversible_block_num, now
+
+// DEFINE: kapacitor define eosmonitor -type stream -tick eosmonitor.tick -dbrp telegraf.autogen
+// ENABLE: kapacitor enable eosmonitor
+
+// Parameters
+var db = 'telegraf'
+
+var rp = 'autogen'
+
+var measurement = 'eosmonitor'
+
+var groupBy = ['host']
+
+var whereFilter = lambda: TRUE
+
+var name = 'eosmonitor'
+
+var idVar = name
+
+var message = '{{ .ID }} is {{ .Level }} at {{.Time}}'
+
+var idTag = 'alertID'
+
+var levelTag = 'level'
+
+var messageField = 'message'
+
+var durationField = 'duration'
+
+var outputDB = 'chronograf'
+
+var outputRP = 'autogen'
+
+var outputMeasurement = 'alerts'
+
+var triggerType = 'threshold'
+
+var details = '出块停止'
+
+var crit = 10
+
+// Dataframe
+var data = stream
+    |from()
+        .database(db)
+        .retentionPolicy(rp)
+        .measurement(measurement)
+        .groupBy(groupBy)
+        .where(whereFilter)
+    |eval(lambda: "now" - "head_block_time")
+        .as('delta')
+
+// Thresholds
+var trigger = data
+    |alert()
+        .crit(lambda: "delta" > crit)
+        .message(message)
+        .id(idVar)
+        .idTag(idTag)
+        .levelTag(levelTag)
+        .messageField(messageField)
+        .durationField(durationField)
+        .details(details)
+        .email()
+        .to('akagi201@qq.com')
+        .telegram()
+        .chatId('89606473')
+        .parseMode('Markdown')
+
+trigger
+    |eval(lambda: "delta")
+        .as('delta')
+        .keep()
+    |influxDBOut()
+        .create()
+        .database(outputDB)
+        .retentionPolicy(outputRP)
+        .measurement(outputMeasurement)
+        .tag('alertName', name)
+        .tag('triggerType', triggerType)
+
+// Alert
+trigger
+    |httpOut('output')
