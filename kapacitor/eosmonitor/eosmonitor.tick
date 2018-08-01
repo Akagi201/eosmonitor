@@ -20,7 +20,7 @@ var whereFilter = lambda: TRUE
 
 var name = 'eosmonitor'
 
-var idVar = name
+var idVar = name + ':{{.Group}}'
 
 var message = '{{ .ID }} is {{ .Level }} at {{.Time}}'
 
@@ -68,6 +68,7 @@ var trigger = data
         .details(details)
         .email()
         .to('akagi201@qq.com')
+        .to('fly_lovelove@163.com')
         .telegram()
         .chatId('89606473')
         .parseMode('Markdown')
